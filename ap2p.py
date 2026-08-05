@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-
 import streamlit as st
 import yfinance as yf
 from langchain.agents import create_agent
@@ -30,7 +29,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "Model",
-        options=["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+        options=["gemini-3.5-flash", "gemini-3.5-flash-lite"],
         index=0,
     )
     st.divider()
