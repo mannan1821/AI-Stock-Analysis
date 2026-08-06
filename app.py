@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from typing import List, Optional
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -39,7 +40,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "Model",
-        options=["gemini-2.0-flash", "gemini-3.5-flash", "gemini-1.5-pro"],
+        options=["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
         index=0,
     )
     st.divider()
@@ -398,10 +399,26 @@ def show_stock_chart(
     after showing the plain chart, ask them in your reply whether they'd
     like indicators added - and if they say yes or name one, call this tool
     again for the same symbol/period with the indicators list filled in."""
-    fig, summary, links = _build_chart(symbol, period, compare_symbol, indicators)
-    if fig is not None:
-        st.session_state["_pending_chart"] = {"fig": fig, "links": links}
+    # Note: this only returns the text summary. The actual Plotly figure is
+    # rebuilt in the main Streamlit thread after the agent finishes (see
+    # `_extract_chart_calls` below) - LangChain/LangGraph can run tool calls
+    # off the main thread, and Streamlit's session_state writes from a
+    # background thread can silently fail to reach the UI, so we don't
+    # depend on a session_state write happening inside this function.
+    _, summary, _ = _build_chart(symbol, period, compare_symbol, indicators)
     return summary
+
+
+def _extract_chart_calls(messages) -> list:
+    """Scans the agent's response messages for show_stock_chart tool calls
+    and returns their argument dicts, in the order they were called."""
+    calls = []
+    for m in messages:
+        if isinstance(m, AIMessage) and getattr(m, "tool_calls", None):
+            for tc in m.tool_calls:
+                if tc.get("name") == "show_stock_chart":
+                    calls.append(tc.get("args", {}) or {})
+    return calls
 
 
 SYSTEM_PROMPT = (
@@ -559,7 +576,6 @@ if prompt:
     with st.chat_message("assistant"):
         summary = ""
         chart = None
-        st.session_state["_pending_chart"] = None
         with st.spinner("Thinking..."):
             try:
                 # Send the full conversation so far (not just the latest message)
@@ -572,7 +588,24 @@ if prompt:
                 response = agent.invoke({"messages": history})
                 answer = extract_text(response["messages"][-1].content)
                 summary = summarize_tool_calls(response["messages"])
-                chart = st.session_state.get("_pending_chart")
+
+                # Rebuild the chart (if any) in this main thread from the
+                # actual tool call args, rather than trusting a session_state
+                # write made from inside the tool - see note in
+                # show_stock_chart for why.
+                chart_calls = _extract_chart_calls(response["messages"])
+                if chart_calls:
+                    last_call = chart_calls[-1]
+                    chart_symbol = last_call.get("symbol")
+                    if chart_symbol:
+                        fig, _, links = _build_chart(
+                            symbol=chart_symbol,
+                            period=last_call.get("period", "6mo"),
+                            compare_symbol=last_call.get("compare_symbol"),
+                            indicators=last_call.get("indicators"),
+                        )
+                        if fig is not None:
+                            chart = {"fig": fig, "links": links}
             except Exception as e:
                 answer = f"Something went wrong: {e}"
             st.markdown(answer)
