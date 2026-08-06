@@ -17,6 +17,7 @@ from plotly.subplots import make_subplots
 st.set_page_config(page_title="AI Stock Market Assistant", page_icon="📈", layout="centered")
 
 APP_BG = "rgb(26, 26, 25)"
+SIDEBAR_BG = "rgb(25, 25, 24)"
 st.markdown(
     f"""
     <style>
@@ -37,16 +38,11 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Sidebar background + a white boundary line on its right edge,
-       separating it from the main content area */
+    /* Sidebar background */
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"],
     [data-testid="stSidebarUserContent"] {{
-        background-color: {APP_BG} !important;
-    }}
-    [data-testid="stSidebar"] {{
-        border-right: 1px solid #ffffff !important;
-        box-shadow: 1px 0 0 0 #ffffff !important;
+        background-color: {SIDEBAR_BG} !important;
     }}
 
     /* Chat input box (bottom bar + the textarea inside it) */
