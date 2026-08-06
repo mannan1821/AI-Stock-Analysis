@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from typing import List, Optional
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -40,7 +39,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "Model",
-        options=["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+        options=["gemini-2.0-flash", "gemini-3.5-flash", "gemini-1.5-pro"],
         index=0,
     )
     st.divider()
