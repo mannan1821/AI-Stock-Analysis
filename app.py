@@ -74,11 +74,21 @@ st.markdown(
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
         background-color: {APP_BG} !important;
+        border: 1px solid #ffffff !important;
+        border-radius: 6px !important;
     }}
 
     /* Buttons (e.g. Clear chat) */
     .stButton > button {{
         background-color: {APP_BG} !important;
+        border: 1px solid #ffffff !important;
+        color: #ffffff !important;
+    }}
+
+    /* Chat input outer box gets its own white boundary */
+    [data-testid="stChatInput"] {{
+        border: 1px solid #ffffff !important;
+        border-radius: 8px !important;
     }}
 
     /* Expanders (the "What I looked up" box) */
@@ -111,6 +121,15 @@ st.warning(
 )
 
 # ----------------------------------------------------------------------------
+# Chat state (initialized here, before the sidebar, so the sidebar's history
+# list below always has something to read from - even on the very first run)
+# ----------------------------------------------------------------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "chart_counter" not in st.session_state:
+    st.session_state.chart_counter = 0
+
+# ----------------------------------------------------------------------------
 # API key handling
 # ----------------------------------------------------------------------------
 with st.sidebar:
@@ -130,8 +149,17 @@ with st.sidebar:
     )
     st.divider()
     if st.button("Clear chat"):
+        # Full reset back to the just-opened-the-app state.
         st.session_state.messages = []
+        st.session_state.chart_counter = 0
         st.rerun()
+
+    user_questions = [m["content"] for m in st.session_state.messages if m["role"] == "user"]
+    if user_questions:
+        st.divider()
+        st.subheader("History")
+        for q in user_questions:
+            st.markdown(f"- {q}")
 
 if not api_key:
     st.info("Enter your Google API Key in the sidebar to get started.")
@@ -739,13 +767,8 @@ def summarize_tool_calls(messages) -> str:
 
 
 # ----------------------------------------------------------------------------
-# Chat state
+# Chat history display
 # ----------------------------------------------------------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "chart_counter" not in st.session_state:
-    st.session_state.chart_counter = 0
-
 for i, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
