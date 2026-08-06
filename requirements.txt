@@ -3,4 +3,6 @@ langchain
 langchain-google-genai
 langchain-core
 yfinance
+plotly
+pandas
 python-dotenv
