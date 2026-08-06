@@ -52,6 +52,15 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
+    /* Bottom bar full width strip (covers the wrapper div(s) around the
+       centered chat input, so there's no lighter/darker margin on the
+       left and right of it) */
+    [data-testid="stBottom"],
+    [data-testid="stBottom"] > div,
+    [data-testid="stBottom"] * {{
+        background-color: {APP_BG} !important;
+    }}
+
     /* Chat message bubbles */
     [data-testid="stChatMessage"],
     [data-testid="stChatMessageContent"] {{
