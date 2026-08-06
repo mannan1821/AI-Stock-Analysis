@@ -221,10 +221,12 @@ CHART_PERIOD_LABELS = {"1mo": "1M", "6mo": "6M", "1y": "1Y", "5y": "5Y", "max": 
 
 CHART_TYPES = ["candlestick", "line"]
 
+CHART_BG = "rgb(26, 26, 25)"
+
 CHART_COLORS = {
     "price_up": "#1E8E5A",
     "price_down": "#B23A48",
-    "line_price": "#DDE3EA",
+    "line_price": "#FFD400",
     "SMA 20": "#C9992B",
     "SMA 50": "#0E8C8C",
     "EMA 20": "#8FD9C4",
@@ -316,6 +318,7 @@ def _build_chart(
             yaxis_title="Growth (start = 100)",
             template="plotly_dark", height=450, margin=dict(t=60, b=30, l=40, r=20),
             legend=dict(orientation="h", y=1.08),
+            paper_bgcolor=CHART_BG, plot_bgcolor=CHART_BG,
         )
         pct1 = norm1.iloc[-1] - 100
         pct2 = norm2.iloc[-1] - 100
@@ -391,6 +394,7 @@ def _build_chart(
         template="plotly_dark", height=280 * rows + 120,
         xaxis_rangeslider_visible=False, margin=dict(t=60, b=30, l=40, r=20),
         legend=dict(orientation="h", y=1.06),
+        paper_bgcolor=CHART_BG, plot_bgcolor=CHART_BG,
     )
 
     summary = f"Showing the {period} {type_label} chart for {symbol}"
