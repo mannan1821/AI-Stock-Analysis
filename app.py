@@ -203,11 +203,17 @@ if "messages" not in st.session_state:
 if "chart_counter" not in st.session_state:
     st.session_state.chart_counter = 0
 if "history" not in st.session_state:
-    # Separate from `messages` on purpose: `messages` drives the current
-    # chat view and gets wiped by "Clear chat"; `history` is a standing,
-    # clickable record of every past exchange (question + full answer) that
-    # survives that reset - each entry can be reopened into the main chat.
+    # One entry per SESSION (not per message): {"title": <first question>,
+    # "messages": <full transcript of that session>}. A new entry is only
+    # created the first time the user sends a message after opening the app
+    # or after "Clear chat" - every message after that updates the same
+    # entry's transcript, in place, rather than creating a new one.
     st.session_state.history = []
+if "active_history_idx" not in st.session_state:
+    # Which entry in `history` the current session is writing into. None
+    # means "no entry yet" - it's created on the first message of a fresh
+    # session (right after Clear chat, or on first-ever load).
+    st.session_state.active_history_idx = None
 
 # ----------------------------------------------------------------------------
 # API key handling
@@ -230,8 +236,12 @@ with st.sidebar:
     st.divider()
     if st.button("Clear chat"):
         # Reset only the current conversation - History below is untouched.
+        # Leaving active_history_idx as None means the *next* message the
+        # user sends starts a brand new History entry rather than
+        # continuing to overwrite the one that was just cleared.
         st.session_state.messages = []
         st.session_state.chart_counter = 0
+        st.session_state.active_history_idx = None
         st.rerun()
 
     if st.session_state.history:
@@ -241,25 +251,26 @@ with st.sidebar:
             for idx, entry in enumerate(st.session_state.history):
                 hist_cols = st.columns([5, 1])
                 with hist_cols[0]:
-                    title = entry["question"]
+                    title = entry["title"]
                     if len(title) > 40:
                         title = title[:40].rstrip() + "…"
                     if st.button(title, key=f"open_hist_{idx}", use_container_width=True):
-                        # Reopen this saved exchange in the main chat window,
-                        # replacing whatever's currently shown there.
-                        st.session_state.messages = [
-                            {"role": "user", "content": entry["question"]},
-                            {
-                                "role": "assistant",
-                                "content": entry["answer"],
-                                "summary": entry["summary"],
-                                "chart": entry["chart"],
-                            },
-                        ]
+                        # Reopen this saved session's full transcript into
+                        # the main chat window, and resume writing further
+                        # messages into this same entry.
+                        st.session_state.messages = list(entry["messages"])
+                        st.session_state.active_history_idx = idx
                         st.rerun()
                 with hist_cols[1]:
                     if st.button("🗑", key=f"del_hist_{idx}", help="Delete this from history"):
                         del st.session_state.history[idx]
+                        if st.session_state.active_history_idx == idx:
+                            st.session_state.active_history_idx = None
+                        elif (
+                            st.session_state.active_history_idx is not None
+                            and st.session_state.active_history_idx > idx
+                        ):
+                            st.session_state.active_history_idx -= 1
                         st.rerun()
 
 if not api_key:
@@ -932,6 +943,17 @@ if prompt:
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "summary": summary, "chart": chart_spec}
     )
-    st.session_state.history.append(
-        {"question": prompt, "answer": answer, "summary": summary, "chart": chart_spec}
-    )
+
+    # Save into History: first message of a fresh session creates a new
+    # titled entry (title = that first question); every message after that
+    # updates the same entry's transcript in place instead of adding a new
+    # title, so one session = one entry in the sidebar.
+    if st.session_state.active_history_idx is None:
+        st.session_state.history.append(
+            {"title": prompt, "messages": list(st.session_state.messages)}
+        )
+        st.session_state.active_history_idx = len(st.session_state.history) - 1
+    else:
+        st.session_state.history[st.session_state.active_history_idx]["messages"] = list(
+            st.session_state.messages
+        )
