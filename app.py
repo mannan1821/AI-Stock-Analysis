@@ -15,6 +15,60 @@ from plotly.subplots import make_subplots
 # Page setup
 # ----------------------------------------------------------------------------
 st.set_page_config(page_title="AI Stock Market Assistant", page_icon="📈", layout="centered")
+
+APP_BG = "rgb(26, 26, 25)"
+st.markdown(
+    f"""
+    <style>
+    /* Main app background */
+    .stApp {{
+        background-color: {APP_BG};
+    }}
+
+    /* Sidebar background */
+    [data-testid="stSidebar"] {{
+        background-color: {APP_BG};
+    }}
+
+    /* Chat input box (bottom bar + the textarea inside it) */
+    [data-testid="stChatInput"] {{
+        background-color: {APP_BG};
+    }}
+    [data-testid="stChatInput"] textarea {{
+        background-color: {APP_BG};
+    }}
+
+    /* Chat message bubbles */
+    [data-testid="stChatMessage"] {{
+        background-color: {APP_BG};
+    }}
+
+    /* Generic text/password inputs and selects (sidebar API key box, model dropdown) */
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="base-input"] {{
+        background-color: {APP_BG};
+    }}
+
+    /* Buttons (e.g. Clear chat) */
+    .stButton > button {{
+        background-color: {APP_BG};
+    }}
+
+    /* Expanders (the "What I looked up" box) */
+    [data-testid="stExpander"] {{
+        background-color: {APP_BG};
+    }}
+
+    /* Radio button groups (period / chart type controls) */
+    div[data-testid="stRadio"] {{
+        background-color: {APP_BG};
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("📈 AI Stock Market Assistant")
 st.caption("Live price lookup · Trend explanation · News search · Interactive charts · Buy/sell analysis · Datetime-aware answers")
 st.warning(
@@ -722,3 +776,4 @@ if prompt:
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "summary": summary, "chart": chart_spec}
     )
+    
