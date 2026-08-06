@@ -157,6 +157,22 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
+    /* History list: title buttons get no boundary/border at all - just
+       plain text that highlights on hover */
+    .st-key-history_list button {{
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        background-color: transparent !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        color: #dddddd !important;
+    }}
+    .st-key-history_list button:hover {{
+        color: #ffffff !important;
+        text-decoration: underline !important;
+    }}
+
     /* Radio button groups (period / chart type controls) */
     div[data-testid="stRadio"],
     div[data-testid="stRadio"] > div,
@@ -221,29 +237,30 @@ with st.sidebar:
     if st.session_state.history:
         st.divider()
         st.subheader("History")
-        for idx, entry in enumerate(st.session_state.history):
-            hist_cols = st.columns([5, 1])
-            with hist_cols[0]:
-                title = entry["question"]
-                if len(title) > 40:
-                    title = title[:40].rstrip() + "…"
-                if st.button(title, key=f"open_hist_{idx}", use_container_width=True):
-                    # Reopen this saved exchange in the main chat window,
-                    # replacing whatever's currently shown there.
-                    st.session_state.messages = [
-                        {"role": "user", "content": entry["question"]},
-                        {
-                            "role": "assistant",
-                            "content": entry["answer"],
-                            "summary": entry["summary"],
-                            "chart": entry["chart"],
-                        },
-                    ]
-                    st.rerun()
-            with hist_cols[1]:
-                if st.button("🗑️", key=f"del_hist_{idx}", help="Delete this from history"):
-                    del st.session_state.history[idx]
-                    st.rerun()
+        with st.container(key="history_list"):
+            for idx, entry in enumerate(st.session_state.history):
+                hist_cols = st.columns([5, 1])
+                with hist_cols[0]:
+                    title = entry["question"]
+                    if len(title) > 40:
+                        title = title[:40].rstrip() + "…"
+                    if st.button(title, key=f"open_hist_{idx}", use_container_width=True):
+                        # Reopen this saved exchange in the main chat window,
+                        # replacing whatever's currently shown there.
+                        st.session_state.messages = [
+                            {"role": "user", "content": entry["question"]},
+                            {
+                                "role": "assistant",
+                                "content": entry["answer"],
+                                "summary": entry["summary"],
+                                "chart": entry["chart"],
+                            },
+                        ]
+                        st.rerun()
+                with hist_cols[1]:
+                    if st.button("🗑", key=f"del_hist_{idx}", help="Delete this from history"):
+                        del st.session_state.history[idx]
+                        st.rerun()
 
 if not api_key:
     st.info("Enter your Google API Key in the sidebar to get started.")
