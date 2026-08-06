@@ -265,7 +265,7 @@ with st.sidebar:
         index=0,
     )
     st.divider()
-    if st.button("Clear chat"):
+    if st.button("New chat"):
         # Reset only the current conversation - History below is untouched.
         # Leaving active_history_idx as None means the *next* message the
         # user sends starts a brand new History entry rather than
