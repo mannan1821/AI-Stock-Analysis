@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from typing import List, Optional
@@ -10,6 +11,33 @@ from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from plotly.subplots import make_subplots
+
+# ----------------------------------------------------------------------------
+# Persistent chat history (survives closing the browser tab / app restart)
+# ----------------------------------------------------------------------------
+HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_history.json")
+
+
+def load_history() -> list:
+    """Loads saved session history from disk. Returns [] if there's no file
+    yet (first-ever run) or if it can't be read/parsed for any reason."""
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return []
+
+
+def save_history(history: list) -> None:
+    """Writes the current session history to disk so it's still there the
+    next time the app is opened, even after the browser tab is closed."""
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f)
+    except OSError:
+        pass  # Best-effort - a failed save shouldn't crash the chat.
+
 
 # ----------------------------------------------------------------------------
 # Page setup
@@ -208,7 +236,8 @@ if "history" not in st.session_state:
     # created the first time the user sends a message after opening the app
     # or after "Clear chat" - every message after that updates the same
     # entry's transcript, in place, rather than creating a new one.
-    st.session_state.history = []
+    # Loaded from disk so it's still there after closing/reopening the app.
+    st.session_state.history = load_history()
 if "active_history_idx" not in st.session_state:
     # Which entry in `history` the current session is writing into. None
     # means "no entry yet" - it's created on the first message of a fresh
@@ -271,6 +300,7 @@ with st.sidebar:
                             and st.session_state.active_history_idx > idx
                         ):
                             st.session_state.active_history_idx -= 1
+                        save_history(st.session_state.history)
                         st.rerun()
 
 if not api_key:
@@ -957,3 +987,4 @@ if prompt:
         st.session_state.history[st.session_state.active_history_idx]["messages"] = list(
             st.session_state.messages
         )
+    save_history(st.session_state.history)
