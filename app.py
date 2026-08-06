@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from typing import List, Optional
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
