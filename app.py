@@ -30,7 +30,7 @@ st.warning(
 def plot_stock_chart(symbol: str, period: str, chart_type: str, indicators: list):
     """
     Fetches historical stock data and generates an interactive Plotly chart
-    with up to 2 technical indicators.
+    with up to 2 technical indicators. Defaults to Line chart.
     """
     stock = yf.Ticker(symbol)
     df = stock.history(period=period)
@@ -52,7 +52,7 @@ def plot_stock_chart(symbol: str, period: str, chart_type: str, indicators: list
     else:
         fig = go.Figure()
 
-    # 1. Base Price Plot (Candlestick or Line)
+    # 1. Base Price Plot (Default: Line)
     if chart_type == "Candlestick":
         chart_obj = go.Candlestick(
             x=df.index, open=df['Open'], high=df['High'],
@@ -119,9 +119,7 @@ def plot_stock_chart(symbol: str, period: str, chart_type: str, indicators: list
 
 def extract_tickers(text: str) -> list[str]:
     """Helper to detect stock ticker symbols in user prompt."""
-    # Finds pattern like AAPL, RELIANCE.NS, TSLA, etc.
     tickers = re.findall(r'\b[A-Z]{2,5}(?:\.[A-Z]{2})?\b', text.upper())
-    # Exclude common non-ticker English uppercase words
     stopwords = {"I", "A", "THE", "BUY", "SELL", "WHAT", "WHY", "HOW", "IS", "ARE", "AND", "OR", "FOR"}
     return list(dict.fromkeys([t for t in tickers if t not in stopwords]))
 
@@ -139,7 +137,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "Model",
-        options=["gemini-3.5-flash-lite", "gemini-3.5-flash"],
+        options=["gemini-2.5-flash", "gemini-2.5-pro"],
         index=0,
     )
     st.divider()
@@ -397,9 +395,11 @@ for idx, msg in enumerate(st.session_state.messages):
                     key=f"period_{idx}"
                 )
             with col3:
+                # Default set to "Line" (index 0)
                 chart_type = st.radio(
                     "Chart Type", 
-                    options=["Candlestick", "Line"], 
+                    options=["Line", "Candlestick"], 
+                    index=0,
                     horizontal=True, 
                     key=f"type_{idx}"
                 )
@@ -463,9 +463,11 @@ if prompt:
                     key=f"period_{idx}"
                 )
             with col3:
+                # Default set to "Line" (index 0)
                 chart_type = st.radio(
                     "Chart Type", 
-                    options=["Candlestick", "Line"], 
+                    options=["Line", "Candlestick"], 
+                    index=0,
                     horizontal=True, 
                     key=f"type_{idx}"
                 )
