@@ -188,8 +188,9 @@ if "chart_counter" not in st.session_state:
     st.session_state.chart_counter = 0
 if "history" not in st.session_state:
     # Separate from `messages` on purpose: `messages` drives the current
-    # chat view/conversation and gets wiped by "Clear chat"; `history` is a
-    # standing record of every question ever asked and survives that.
+    # chat view and gets wiped by "Clear chat"; `history` is a standing,
+    # clickable record of every past exchange (question + full answer) that
+    # survives that reset - each entry can be reopened into the main chat.
     st.session_state.history = []
 
 # ----------------------------------------------------------------------------
@@ -220,10 +221,25 @@ with st.sidebar:
     if st.session_state.history:
         st.divider()
         st.subheader("History")
-        for idx, q in enumerate(st.session_state.history):
+        for idx, entry in enumerate(st.session_state.history):
             hist_cols = st.columns([5, 1])
             with hist_cols[0]:
-                st.markdown(f"- {q}")
+                title = entry["question"]
+                if len(title) > 40:
+                    title = title[:40].rstrip() + "…"
+                if st.button(title, key=f"open_hist_{idx}", use_container_width=True):
+                    # Reopen this saved exchange in the main chat window,
+                    # replacing whatever's currently shown there.
+                    st.session_state.messages = [
+                        {"role": "user", "content": entry["question"]},
+                        {
+                            "role": "assistant",
+                            "content": entry["answer"],
+                            "summary": entry["summary"],
+                            "chart": entry["chart"],
+                        },
+                    ]
+                    st.rerun()
             with hist_cols[1]:
                 if st.button("🗑️", key=f"del_hist_{idx}", help="Delete this from history"):
                     del st.session_state.history[idx]
@@ -850,7 +866,6 @@ prompt = st.chat_input("Ask about a stock price, trend, chart, or the current ti
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
-    st.session_state.history.append(prompt)
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -899,4 +914,7 @@ if prompt:
 
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "summary": summary, "chart": chart_spec}
+    )
+    st.session_state.history.append(
+        {"question": prompt, "answer": answer, "summary": summary, "chart": chart_spec}
     )
