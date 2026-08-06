@@ -3,9 +3,12 @@ import os
 from datetime import datetime
 import streamlit as st
 import yfinance as yf
+from yfinance.exceptions import YFRateLimitError
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import requests_cache
+
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
@@ -25,6 +28,41 @@ st.warning(
 )
 
 # ----------------------------------------------------------------------------
+# Cached yfinance Session & Data Fetchers (Fixes Rate Limit Issues)
+# ----------------------------------------------------------------------------
+@st.cache_resource
+def get_yf_session():
+    """Creates a cached requests session with custom User-Agent to bypass YF blocking."""
+    session = requests_cache.CachedSession('yfinance.cache', expire_after=1800)
+    session.headers['User-Agent'] = (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/120.0.0.0 Safari/537.36'
+    )
+    return session
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_stock_history(symbol: str, period: str = "1mo") -> pd.DataFrame:
+    """Cached stock price history fetcher."""
+    session = get_yf_session()
+    stock = yf.Ticker(symbol, session=session)
+    return stock.history(period=period)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_stock_info(symbol: str) -> dict:
+    """Cached stock fundamental info fetcher."""
+    session = get_yf_session()
+    stock = yf.Ticker(symbol, session=session)
+    return stock.info or {}
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def fetch_stock_news(symbol: str) -> list:
+    """Cached stock news fetcher."""
+    session = get_yf_session()
+    stock = yf.Ticker(symbol, session=session)
+    return stock.news or []
+
+# ----------------------------------------------------------------------------
 # Charting Helper Function
 # ----------------------------------------------------------------------------
 def plot_stock_chart(symbol: str, period: str, chart_type: str, indicators: list):
@@ -32,9 +70,15 @@ def plot_stock_chart(symbol: str, period: str, chart_type: str, indicators: list
     Fetches historical stock data and generates an interactive Plotly chart
     with up to 2 technical indicators. Defaults to Line chart.
     """
-    stock = yf.Ticker(symbol)
-    df = stock.history(period=period)
-    
+    try:
+        df = fetch_stock_history(symbol, period=period)
+    except YFRateLimitError:
+        st.warning("⚠️ Yahoo Finance rate limit encountered. Please wait a moment and try again.")
+        return
+    except Exception as e:
+        st.error(f"Could not load chart data for {symbol}: {e}")
+        return
+
     if df.empty:
         st.error(f"No historical data found for {symbol} over period '{period}'.")
         return
@@ -137,7 +181,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "Model",
-        options=["gemini-3.5-flash-lite", "gemini-3.5-flash"],
+        options=["gemini-2.5-flash", "gemini-2.5-pro"],
         index=0,
     )
     st.divider()
@@ -153,61 +197,66 @@ os.environ["GOOGLE_API_KEY"] = api_key
 
 
 # ----------------------------------------------------------------------------
-# Tools
+# Agent Tools (Refactored to use cached functions)
 # ----------------------------------------------------------------------------
 @tool
 def get_stock_price(symbol: str) -> float:
     """Returns the latest closing stock price for a given ticker symbol
     (e.g. 'RELIANCE.NS' for NSE, 'AAPL' for US markets)."""
-    stock = yf.Ticker(symbol)
-    price = stock.history(period="1d")
-    if price.empty:
-        raise ValueError(f"No price data found for symbol '{symbol}'.")
-    return float(price["Close"].iloc[-1])
+    try:
+        hist = fetch_stock_history(symbol, period="1d")
+        if hist.empty:
+            raise ValueError(f"No price data found for symbol '{symbol}'.")
+        return float(hist["Close"].iloc[-1])
+    except YFRateLimitError:
+        raise RuntimeError("Yahoo Finance rate limit hit. Try again in a minute.")
 
 
 @tool
 def get_stock_trend(symbol: str, period: str = "1mo") -> str:
     """Analyzes the recent price trend for a stock ticker over a given period
     (e.g. '5d', '1mo', '3mo', '6mo', '1y') and returns a plain-language summary."""
-    stock = yf.Ticker(symbol)
-    hist = stock.history(period=period)
-    if hist.empty:
-        return f"No historical data found for {symbol} over period '{period}'."
+    try:
+        hist = fetch_stock_history(symbol, period=period)
+        if hist.empty:
+            return f"No historical data found for {symbol} over period '{period}'."
 
-    closes = hist["Close"]
-    start_price = float(closes.iloc[0])
-    end_price = float(closes.iloc[-1])
-    pct_change = ((end_price - start_price) / start_price) * 100
-    period_high = float(closes.max())
-    period_low = float(closes.min())
+        closes = hist["Close"]
+        start_price = float(closes.iloc[0])
+        end_price = float(closes.iloc[-1])
+        pct_change = ((end_price - start_price) / start_price) * 100
+        period_high = float(closes.max())
+        period_low = float(closes.min())
 
-    direction = "upward" if pct_change > 0 else ("downward" if pct_change < 0 else "flat")
+        direction = "upward" if pct_change > 0 else ("downward" if pct_change < 0 else "flat")
 
-    short_window = min(5, len(closes))
-    long_window = min(20, len(closes))
-    sma_short = float(closes.rolling(window=short_window).mean().iloc[-1])
-    sma_long = float(closes.rolling(window=long_window).mean().iloc[-1])
-    momentum = (
-        "bullish (short-term average is above the long-term average)"
-        if sma_short > sma_long
-        else "bearish (short-term average is below the long-term average)"
-    )
+        short_window = min(5, len(closes))
+        long_window = min(20, len(closes))
+        sma_short = float(closes.rolling(window=short_window).mean().iloc[-1])
+        sma_long = float(closes.rolling(window=long_window).mean().iloc[-1])
+        momentum = (
+            "bullish (short-term average is above the long-term average)"
+            if sma_short > sma_long
+            else "bearish (short-term average is below the long-term average)"
+        )
 
-    return (
-        f"{symbol} moved {direction} over the last {period}, changing "
-        f"{pct_change:.2f}% from {start_price:.2f} to {end_price:.2f}. "
-        f"Period high: {period_high:.2f}, period low: {period_low:.2f}. "
-        f"Momentum currently looks {momentum}."
-    )
+        return (
+            f"{symbol} moved {direction} over the last {period}, changing "
+            f"{pct_change:.2f}% from {start_price:.2f} to {end_price:.2f}. "
+            f"Period high: {period_high:.2f}, period low: {period_low:.2f}. "
+            f"Momentum currently looks {momentum}."
+        )
+    except YFRateLimitError:
+        return f"Could not fetch trend for {symbol} due to Yahoo Finance rate limiting. Please wait."
 
 
 @tool
 def get_stock_fundamentals(symbol: str) -> str:
     """Fetches key valuation/fundamental data and Wall Street analyst consensus."""
-    stock = yf.Ticker(symbol)
     try:
-        info = stock.info or {}
+        info = fetch_stock_info(symbol)
+    except YFRateLimitError:
+        return f"Rate limit reached when fetching fundamentals for {symbol}."
     except Exception as e:
         return f"Could not fetch fundamentals for {symbol}: {e}"
 
@@ -251,9 +300,10 @@ def get_stock_fundamentals(symbol: str) -> str:
 @tool
 def get_stock_news(symbol: str, max_results: int = 5) -> str:
     """Fetches recent news headlines for a stock ticker."""
-    stock = yf.Ticker(symbol)
     try:
-        news_items = stock.news or []
+        news_items = fetch_stock_news(symbol)
+    except YFRateLimitError:
+        return f"Rate limit reached when fetching news for {symbol}."
     except Exception as e:
         return f"Could not fetch news for {symbol}: {e}"
 
