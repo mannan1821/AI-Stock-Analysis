@@ -67,15 +67,25 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Generic text/password inputs and selects (sidebar API key box, model dropdown) */
+    /* Generic text/password inputs and selects (sidebar API key box, model dropdown).
+       Uses outline (not border) because Streamlit/BaseWeb sets its own border on
+       nested elements with !important in some versions - outline draws a fully
+       separate ring around the box that nothing else touches, so it always shows. */
+    [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stTextInput"] div[data-baseweb="base-input"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
     div[data-baseweb="input"],
     div[data-baseweb="input"] > div,
     div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
         background-color: {APP_BG} !important;
-        border: 1px solid #ffffff !important;
+        outline: 1px solid #ffffff !important;
+        outline-offset: -1px;
         border-radius: 6px !important;
+    }}
+    [data-testid="stTextInput"] input {{
+        background-color: {APP_BG} !important;
     }}
 
     /* Buttons (e.g. Clear chat) */
@@ -128,6 +138,11 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chart_counter" not in st.session_state:
     st.session_state.chart_counter = 0
+if "history" not in st.session_state:
+    # Separate from `messages` on purpose: `messages` drives the current
+    # chat view/conversation and gets wiped by "Clear chat"; `history` is a
+    # standing record of every question ever asked and survives that.
+    st.session_state.history = []
 
 # ----------------------------------------------------------------------------
 # API key handling
@@ -149,17 +164,22 @@ with st.sidebar:
     )
     st.divider()
     if st.button("Clear chat"):
-        # Full reset back to the just-opened-the-app state.
+        # Reset only the current conversation - History below is untouched.
         st.session_state.messages = []
         st.session_state.chart_counter = 0
         st.rerun()
 
-    user_questions = [m["content"] for m in st.session_state.messages if m["role"] == "user"]
-    if user_questions:
+    if st.session_state.history:
         st.divider()
         st.subheader("History")
-        for q in user_questions:
-            st.markdown(f"- {q}")
+        for idx, q in enumerate(st.session_state.history):
+            hist_cols = st.columns([5, 1])
+            with hist_cols[0]:
+                st.markdown(f"- {q}")
+            with hist_cols[1]:
+                if st.button("🗑️", key=f"del_hist_{idx}", help="Delete this from history"):
+                    del st.session_state.history[idx]
+                    st.rerun()
 
 if not api_key:
     st.info("Enter your Google API Key in the sidebar to get started.")
@@ -782,6 +802,7 @@ prompt = st.chat_input("Ask about a stock price, trend, chart, or the current ti
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.history.append(prompt)
     with st.chat_message("user"):
         st.markdown(prompt)
 
