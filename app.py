@@ -89,6 +89,16 @@ st.markdown(
         outline-offset: -2px;
         border: 1px solid #ffffff !important;
         border-radius: 6px !important;
+        box-shadow: 0 0 0 1px #ffffff inset !important;
+    }}
+
+    /* Belt-and-braces: force the same ring on every descendant of the Model
+       dropdown specifically, in case a still-more-nested element paints
+       over the outer boundary above. */
+    [data-testid="stSelectbox"] div[data-baseweb="select"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] div {{
+        box-shadow: 0 0 0 1px #ffffff inset !important;
     }}
     [data-testid="stTextInput"] input {{
         background-color: {APP_BG} !important;
