@@ -975,7 +975,7 @@ if prompt:
             for w in words:
                 shown += (" " if shown else "") + w
                 answer_placeholder.markdown(shown)
-                time.sleep(0.1)
+                time.sleep(0.05)
 
             if chart_spec is not None:
                 render_chart(chart_spec, key=chart_spec["_key"])
