@@ -100,6 +100,24 @@ st.markdown(
     [data-testid="stSelectbox"] div[data-baseweb="select"] div {{
         box-shadow: 0 0 0 1px #ffffff inset !important;
     }}
+
+    /* Last resort for the Model dropdown: whatever markup Streamlit renders
+       internally, the widget box is always the direct child of
+       [data-testid="stSelectbox"] that comes right after its label - so
+       target that positionally instead of relying on a specific internal
+       class/testid/attribute name. Covers a plain native <select> too. */
+    [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]),
+    [data-testid="stSelectbox"] select {{
+        background-color: {APP_BG} !important;
+        outline: 2px solid #ffffff !important;
+        outline-offset: -2px;
+        border: 1px solid #ffffff !important;
+        box-shadow: 0 0 0 1px #ffffff inset !important;
+        border-radius: 6px !important;
+    }}
+    [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]) * {{
+        background-color: {APP_BG} !important;
+    }}
     [data-testid="stTextInput"] input {{
         background-color: {APP_BG} !important;
     }}
