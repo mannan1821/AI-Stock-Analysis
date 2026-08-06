@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime
 from typing import List, Optional
 import pandas as pd
@@ -963,7 +964,19 @@ if prompt:
                         }
             except Exception as e:
                 answer = f"Something went wrong: {e}"
-            st.markdown(answer)
+
+            # Typewriter effect: reveal the answer one word at a time (0.1s
+            # between words) instead of showing the full text instantly.
+            # Only for the freshly-generated answer - saved/history messages
+            # below still render instantly so reopening a chat isn't slow.
+            answer_placeholder = st.empty()
+            words = answer.split(" ")
+            shown = ""
+            for w in words:
+                shown += (" " if shown else "") + w
+                answer_placeholder.markdown(shown)
+                time.sleep(0.1)
+
             if chart_spec is not None:
                 render_chart(chart_spec, key=chart_spec["_key"])
             if summary:
