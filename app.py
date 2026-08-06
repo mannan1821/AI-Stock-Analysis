@@ -232,11 +232,12 @@ if "messages" not in st.session_state:
 if "chart_counter" not in st.session_state:
     st.session_state.chart_counter = 0
 if "history" not in st.session_state:
-    # One entry per SESSION (not per message): {"title": <first question>,
-    # "messages": <full transcript of that session>}. A new entry is only
-    # created the first time the user sends a message after opening the app
-    # or after "Clear chat" - every message after that updates the same
-    # entry's transcript, in place, rather than creating a new one.
+    # One entry per SESSION (not per message): {"title": <summary of the
+    # first exchange>, "messages": <full transcript of that session>}. A
+    # new entry is only created the first time the user sends a message
+    # after opening the app or after "Clear chat" - every message after
+    # that updates the same entry's transcript, in place, rather than
+    # creating a new one.
     # Loaded from disk so it's still there after closing/reopening the app.
     st.session_state.history = load_history()
 if "active_history_idx" not in st.session_state:
@@ -278,7 +279,12 @@ with st.sidebar:
         st.divider()
         st.subheader("History")
         with st.container(key="history_list"):
-            for idx, entry in enumerate(st.session_state.history):
+            # Newest session first: walk the list back-to-front, but keep
+            # each entry's real index (idx) from the underlying list so the
+            # open/delete buttons below still act on the right entry -
+            # `active_history_idx` and `st.session_state.history[...]`
+            # elsewhere in the file still refer to that original index.
+            for idx, entry in reversed(list(enumerate(st.session_state.history))):
                 hist_cols = st.columns([5, 1])
                 with hist_cols[0]:
                     title = entry["title"]
@@ -909,6 +915,31 @@ def summarize_tool_calls(messages) -> str:
     return "\n".join(lines)
 
 
+def generate_session_title(user_message: str, assistant_answer: str, model_name: str) -> str:
+    """Generates a short (3-6 word) title summarizing the first exchange of a
+    session, for display in the History sidebar. Falls back to a truncated
+    version of the user's first message if the title-generation call fails
+    for any reason (e.g. API hiccup) - a session should never be left
+    without a usable title."""
+    fallback = user_message.strip().splitlines()[0][:60] if user_message.strip() else "New chat"
+    try:
+        titler = ChatGoogleGenerativeAI(model=model_name, temperature=0)
+        title_prompt = (
+            "Summarize the topic of the following chat exchange as a short "
+            "title, 3 to 6 words, no punctuation at the end, no quotes "
+            "around it. Reply with ONLY the title text and nothing else.\n\n"
+            f"User: {user_message}\n\nAssistant: {assistant_answer}"
+        )
+        result = titler.invoke(title_prompt)
+        title = extract_text(result.content).strip().strip('"').strip("'")
+        # Guard against an empty or absurdly long response from the model.
+        if title and len(title) <= 80:
+            return title
+    except Exception:
+        pass
+    return fallback
+
+
 # ----------------------------------------------------------------------------
 # Chat history display
 # ----------------------------------------------------------------------------
@@ -987,13 +1018,16 @@ if prompt:
         {"role": "assistant", "content": answer, "summary": summary, "chart": chart_spec}
     )
 
-    # Save into History: first message of a fresh session creates a new
-    # titled entry (title = that first question); every message after that
-    # updates the same entry's transcript in place instead of adding a new
-    # title, so one session = one entry in the sidebar.
+    # Save into History: the first message of a fresh session creates a new
+    # entry, titled with a short model-generated summary of that first
+    # exchange (falls back to the raw question if title generation fails);
+    # every message after that updates the same entry's transcript in
+    # place instead of adding a new title, so one session = one entry in
+    # the sidebar.
     if st.session_state.active_history_idx is None:
+        title = generate_session_title(prompt, answer, model_name)
         st.session_state.history.append(
-            {"title": prompt, "messages": list(st.session_state.messages)}
+            {"title": title, "messages": list(st.session_state.messages)}
         )
         st.session_state.active_history_idx = len(st.session_state.history) - 1
     else:
