@@ -165,7 +165,7 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Buttons (e.g. Clear chat) */
+    /* Buttons (e.g. New chat) */
     .stButton > button {{
         background-color: {APP_BG} !important;
         border: 1px solid #ffffff !important;
