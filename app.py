@@ -88,6 +88,14 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
+    /* Force the exact fill color on every element inside these two boxes
+       (input wrapper, icon buttons, dropdown arrow, etc.) so nothing shows
+       through a lighter/different shade */
+    [data-testid="stTextInput"] *,
+    [data-testid="stSelectbox"] * {{
+        background-color: {APP_BG} !important;
+    }}
+
     /* Buttons (e.g. Clear chat) */
     .stButton > button {{
         background-color: {APP_BG} !important;
