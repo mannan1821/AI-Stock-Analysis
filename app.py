@@ -20,50 +20,73 @@ APP_BG = "rgb(26, 26, 25)"
 st.markdown(
     f"""
     <style>
-    /* Main app background */
-    .stApp {{
-        background-color: {APP_BG};
+    :root {{
+        --background-color: {APP_BG};
+        --secondary-background-color: {APP_BG};
+    }}
+
+    /* Outer page + main app view + header/toolbar strip + bottom bar wrapper */
+    html, body,
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stHeader"],
+    [data-testid="stBottom"],
+    [data-testid="stBottomBlockContainer"] {{
+        background-color: {APP_BG} !important;
     }}
 
     /* Sidebar background */
-    [data-testid="stSidebar"] {{
-        background-color: {APP_BG};
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarContent"],
+    [data-testid="stSidebarUserContent"] {{
+        background-color: {APP_BG} !important;
     }}
 
     /* Chat input box (bottom bar + the textarea inside it) */
-    [data-testid="stChatInput"] {{
-        background-color: {APP_BG};
-    }}
+    [data-testid="stChatInput"],
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInputTextArea"],
     [data-testid="stChatInput"] textarea {{
-        background-color: {APP_BG};
+        background-color: {APP_BG} !important;
     }}
 
     /* Chat message bubbles */
-    [data-testid="stChatMessage"] {{
-        background-color: {APP_BG};
+    [data-testid="stChatMessage"],
+    [data-testid="stChatMessageContent"] {{
+        background-color: {APP_BG} !important;
     }}
 
     /* Generic text/password inputs and selects (sidebar API key box, model dropdown) */
+    div[data-baseweb="input"],
     div[data-baseweb="input"] > div,
+    div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
-        background-color: {APP_BG};
+        background-color: {APP_BG} !important;
     }}
 
     /* Buttons (e.g. Clear chat) */
     .stButton > button {{
-        background-color: {APP_BG};
+        background-color: {APP_BG} !important;
     }}
 
     /* Expanders (the "What I looked up" box) */
-    [data-testid="stExpander"] {{
-        background-color: {APP_BG};
+    [data-testid="stExpander"],
+    [data-testid="stExpander"] details,
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpanderDetails"] {{
+        background-color: {APP_BG} !important;
     }}
 
     /* Radio button groups (period / chart type controls) */
-    div[data-testid="stRadio"] {{
-        background-color: {APP_BG};
+    div[data-testid="stRadio"],
+    div[data-testid="stRadio"] > div,
+    div[data-testid="stRadio"] label {{
+        background-color: {APP_BG} !important;
     }}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -776,4 +799,3 @@ if prompt:
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "summary": summary, "chart": chart_spec}
     )
-    
