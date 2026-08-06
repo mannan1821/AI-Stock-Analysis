@@ -68,9 +68,14 @@ st.markdown(
     }}
 
     /* Generic text/password inputs and selects (sidebar API key box, model dropdown).
-       Uses outline (not border) because Streamlit/BaseWeb sets its own border on
-       nested elements with !important in some versions - outline draws a fully
-       separate ring around the box that nothing else touches, so it always shows. */
+       Targets the widget's own "root" wrapper (stable Streamlit testid, holds
+       just the box - not the label) as the primary target, with the older
+       BaseWeb selectors kept as a fallback for other Streamlit versions.
+       Uses outline (not border) because Streamlit/BaseWeb sets its own border
+       on nested elements with !important in some versions - outline draws a
+       fully separate ring around the box that nothing else touches. */
+    [data-testid="stTextInputRootElement"],
+    [data-testid="stSelectboxRootElement"],
     [data-testid="stTextInput"] div[data-baseweb="input"],
     [data-testid="stTextInput"] div[data-baseweb="base-input"],
     [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
@@ -80,8 +85,9 @@ st.markdown(
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
         background-color: {APP_BG} !important;
-        outline: 1px solid #ffffff !important;
-        outline-offset: -1px;
+        outline: 2px solid #ffffff !important;
+        outline-offset: -2px;
+        border: 1px solid #ffffff !important;
         border-radius: 6px !important;
     }}
     [data-testid="stTextInput"] input {{
