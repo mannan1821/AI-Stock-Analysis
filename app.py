@@ -37,11 +37,16 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Sidebar background */
+    /* Sidebar background + a white boundary line on its right edge,
+       separating it from the main content area */
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"],
     [data-testid="stSidebarUserContent"] {{
         background-color: {APP_BG} !important;
+    }}
+    [data-testid="stSidebar"] {{
+        border-right: 1px solid #ffffff !important;
+        box-shadow: 1px 0 0 0 #ffffff !important;
     }}
 
     /* Chat input box (bottom bar + the textarea inside it) */
