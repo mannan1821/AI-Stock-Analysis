@@ -413,7 +413,17 @@ st.markdown(
     }}
     [data-testid="stFormSubmitButton"] button {{
         width: 100% !important;
+        background-color: #ff0000 !important;
         border: 1px solid #ff0000 !important;
+        color: #ffffff !important;
+    }}
+    [data-testid="stFormSubmitButton"] button:hover {{
+        background-color: #cc0000 !important;
+        border: 1px solid #cc0000 !important;
+        color: #ffffff !important;
+    }}
+    [data-testid="stFormSubmitButton"] button p {{
+        color: #ffffff !important;
     }}
     .stButton > button {{
         border: 1px solid #ff0000 !important;
