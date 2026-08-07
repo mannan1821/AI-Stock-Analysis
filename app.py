@@ -484,6 +484,23 @@ st.markdown(
         display: none !important;
     }}
 
+    /* API Key and Model boxes: boundary back to white (overrides the red
+       boundary applied to input boxes generally, since these rules come
+       later in the stylesheet at equal/higher specificity). */
+    .st-key-api_key_input [data-testid="stTextInputRootElement"],
+    .st-key-api_key_input div[data-baseweb="input"],
+    .st-key-api_key_input div[data-baseweb="base-input"],
+    .st-key-model_select [data-testid="stSelectboxRootElement"],
+    .st-key-model_select div[data-baseweb="select"],
+    .st-key-model_select div[data-baseweb="select"] > div,
+    .st-key-model_select div[data-baseweb="select"] div,
+    .st-key-model_select > div:not([data-testid="stWidgetLabel"]),
+    .st-key-model_select select {{
+        outline: 2px solid #ffffff !important;
+        border: 1px solid #ffffff !important;
+        box-shadow: 0 0 0 1px #ffffff inset !important;
+    }}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -566,6 +583,7 @@ with st.sidebar:
         "Google API Key",
         value=default_key,
         type="password",
+        key="api_key_input",
         help="Get a key from https://aistudio.google.com/apikey. "
         "You can also set the GOOGLE_API_KEY environment variable instead.",
     )
@@ -573,6 +591,7 @@ with st.sidebar:
         "Model",
         options=["gemini-3.5-flash-lite", "gemini-3.5-flash"],
         index=0,
+        key="model_select",
     )
     st.divider()
     if st.button("New chat", key="new_chat_btn"):
