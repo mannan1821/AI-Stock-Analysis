@@ -445,6 +445,18 @@ st.markdown(
         border: 1px solid #ff0000 !important;
     }}
 
+    /* Hide Streamlit's built-in hamburger menu entirely - that menu is the
+       only place a light/dark theme switcher (Settings -> "Choose app
+       theme, colors and fonts") is exposed, so removing the menu removes
+       the light-theme option with no separate config file needed. Covers
+       both the current data-testid and the legacy #MainMenu id, in case
+       of Streamlit version differences. */
+    [data-testid="stMainMenu"],
+    #MainMenu {{
+        visibility: hidden !important;
+        display: none !important;
+    }}
+
     </style>
     """,
     unsafe_allow_html=True,
