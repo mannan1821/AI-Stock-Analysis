@@ -445,6 +445,33 @@ st.markdown(
         border: 1px solid #ff0000 !important;
     }}
 
+    /* "New chat" and "Login / Sign up" - exact same look as the Log in /
+       Create account / Continue as guest submit buttons: filled red,
+       white text, same fixed centered width, same hover darken. */
+    .st-key-new_chat_btn,
+    .st-key-guest_upgrade_btn {{
+        max-width: 320px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }}
+    .st-key-new_chat_btn button,
+    .st-key-guest_upgrade_btn button {{
+        width: 100% !important;
+        background-color: #ff0000 !important;
+        border: 1px solid #ff0000 !important;
+        color: #ffffff !important;
+    }}
+    .st-key-new_chat_btn button:hover,
+    .st-key-guest_upgrade_btn button:hover {{
+        background-color: #cc0000 !important;
+        border: 1px solid #cc0000 !important;
+        color: #ffffff !important;
+    }}
+    .st-key-new_chat_btn button p,
+    .st-key-guest_upgrade_btn button p {{
+        color: #ffffff !important;
+    }}
+
     /* Hide Streamlit's built-in hamburger menu entirely - that menu is the
        only place a light/dark theme switcher (Settings -> "Choose app
        theme, colors and fonts") is exposed, so removing the menu removes
@@ -548,7 +575,7 @@ with st.sidebar:
         index=0,
     )
     st.divider()
-    if st.button("New chat"):
+    if st.button("New chat", key="new_chat_btn"):
         # Reset only the current conversation - History below is untouched.
         # Leaving active_history_idx as None means the *next* message the
         # user sends starts a brand new History entry rather than
