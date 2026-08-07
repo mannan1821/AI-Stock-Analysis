@@ -421,6 +421,21 @@ st.markdown(
         border: 1px solid #ff0000 !important;
     }}
 
+    /* Google API Key box and Model dropdown: white boundary (override of
+       the red boundary above, since these come later at equal specificity). */
+    .st-key-api_key_input [data-testid="stTextInputRootElement"],
+    .st-key-api_key_input div[data-baseweb="input"],
+    .st-key-api_key_input div[data-baseweb="base-input"],
+    .st-key-model_select [data-testid="stSelectboxRootElement"],
+    .st-key-model_select div[data-baseweb="select"],
+    .st-key-model_select div[data-baseweb="select"] > div,
+    .st-key-model_select div[data-baseweb="select"] div,
+    .st-key-model_select > div:not([data-testid="stWidgetLabel"]) {{
+        outline: 2px solid #ffffff !important;
+        border: 1px solid #ffffff !important;
+        box-shadow: 0 0 0 1px #ffffff inset !important;
+    }}
+
     /* Submit / action buttons: same fixed width, centered, red boundary */
     [data-testid="stFormSubmitButton"] {{
         max-width: 320px !important;
