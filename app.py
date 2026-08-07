@@ -433,7 +433,7 @@ st.markdown(
     .st-key-model_select > div:not([data-testid="stWidgetLabel"]) {{
         outline: 2px solid #ffffff !important;
         border: 1px solid #ffffff !important;
-        # box-shadow: 0 0 0 1px #ffffff inset !important;
+        
     }}
 
     /* Submit / action buttons: same fixed width, centered, red boundary */
