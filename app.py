@@ -120,14 +120,30 @@ def verify_password(password: str, salt_hex: str, expected_hash_hex: str) -> boo
     return hmac.compare_digest(derived_hash_hex, expected_hash_hex)
 
 
+def _clear_all_session_state(keep_keys: tuple = ()) -> None:
+    """Wipes EVERY key from this browser tab's session state except any
+    explicitly listed in keep_keys - not just the obvious chat/history
+    keys, but also things like per-chart period/chart-type radio widget
+    state, form field drafts, etc. Streamlit already scopes session_state
+    to one browser tab/connection per person, so this can never touch
+    another person's session - but within a single shared browser tab,
+    switching WHO is signed in (login, sign up, guest, logout, guest ->
+    account upgrade) must not let any state from the previous identity
+    carry over into what renders next."""
+    for key in list(st.session_state.keys()):
+        if key not in keep_keys:
+            del st.session_state[key]
+
+
 def _sign_in_as(username: str, email: Optional[str], is_guest: bool) -> None:
-    """Sets the active identity and wipes any in-memory chat state left over
-    from whoever (or whichever guest) was using this browser tab before, so
-    the next rerun loads a clean slate - which then gets repopulated from
-    that account's own saved history (or, for a guest, stays empty)."""
+    """Sets the active identity after wiping this browser tab's state clean,
+    so the next rerun starts from nothing and then gets repopulated only
+    from THIS account's own saved history (or, for a guest, stays empty -
+    guests never share data with each other or with any account, even if
+    two guests reuse the same display name, since guest state lives only
+    in this one session and is never written to disk)."""
+    _clear_all_session_state()
     st.session_state.auth_user = {"username": username, "email": email, "is_guest": is_guest}
-    for key in ("messages", "history", "chart_counter", "active_history_idx"):
-        st.session_state.pop(key, None)
 
 
 def render_auth_screen() -> None:
@@ -524,7 +540,14 @@ with st.sidebar:
         # Reset only the current conversation - History below is untouched.
         # Leaving active_history_idx as None means the *next* message the
         # user sends starts a brand new History entry rather than
-        # continuing to overwrite the one that was just cleared.
+        # continuing to overwrite the one that was just cleared. Also drop
+        # any leftover per-chart widget state (e.g. "chart_3_period",
+        # "chart_3_type") from the conversation just cleared, so a stale
+        # period/chart-type selection can't quietly apply to a chart in
+        # the next conversation.
+        for key in list(st.session_state.keys()):
+            if key.startswith("chart_") and key not in ("chart_counter",):
+                del st.session_state[key]
         st.session_state.messages = []
         st.session_state.chart_counter = 0
         st.session_state.active_history_idx = None
@@ -582,9 +605,11 @@ with st.sidebar:
             st.caption("Guest session · not saved")
     with footer_cols[1]:
         if st.button("⏻", key="logout_btn", help="Log out"):
+            # Full wipe (not just the chat/history keys) so nothing about
+            # this identity - including chart widget state - is still
+            # sitting in this browser tab for whoever signs in next.
+            _clear_all_session_state()
             st.session_state.auth_user = None
-            for key in ("messages", "history", "chart_counter", "active_history_idx"):
-                st.session_state.pop(key, None)
             st.rerun()
 
 if not api_key:
