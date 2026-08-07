@@ -248,6 +248,14 @@ if "active_history_idx" not in st.session_state:
 
 # ----------------------------------------------------------------------------
 # API key handling
+#
+# NOTE: the key the user types here is kept ONLY in this browser session's
+# local variable (`api_key`, below). It is deliberately never written to
+# os.environ or any other process-wide/global state - os.environ is shared
+# by the entire Streamlit server process, so writing to it would leak one
+# user's key into every other (and every future) session hitting the same
+# server. `GOOGLE_API_KEY` from the environment is only ever *read* here,
+# as an optional default for whoever deploys the app - never re-assigned.
 # ----------------------------------------------------------------------------
 with st.sidebar:
     st.header("Settings")
@@ -314,7 +322,11 @@ if not api_key:
     st.info("Enter your Google API Key in the sidebar to get started.")
     st.stop()
 
-os.environ["GOOGLE_API_KEY"] = api_key
+# NOTE: intentionally NOT setting os.environ["GOOGLE_API_KEY"] = api_key here.
+# That would leak into the shared server process and reappear (pre-filled)
+# in the next session. The key is passed explicitly wherever a
+# ChatGoogleGenerativeAI instance is created instead (see get_agent and
+# generate_session_title below).
 
 
 # ----------------------------------------------------------------------------
@@ -835,10 +847,15 @@ SYSTEM_PROMPT = (
 
 # ----------------------------------------------------------------------------
 # Agent (cached so it isn't rebuilt on every rerun)
+#
+# NOTE: api_key is now passed straight into ChatGoogleGenerativeAI instead of
+# being read from os.environ, since we no longer write it there. It's still
+# part of the @st.cache_resource cache key (along with model_name), so a
+# different key or model correctly gets a freshly-built agent.
 # ----------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
 def get_agent(api_key: str, model_name: str):
-    model = ChatGoogleGenerativeAI(model=model_name)
+    model = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key)
     return create_agent(
         model=model,
         tools=[
@@ -915,7 +932,7 @@ def summarize_tool_calls(messages) -> str:
     return "\n".join(lines)
 
 
-def generate_session_title(user_message: str, assistant_answer: str, model_name: str) -> str:
+def generate_session_title(user_message: str, assistant_answer: str, model_name: str, api_key: str) -> str:
     """Generates a short (3-6 word) title summarizing the first exchange of a
     session, for display in the History sidebar. Falls back to a truncated
     version of the user's first message if the title-generation call fails
@@ -923,7 +940,7 @@ def generate_session_title(user_message: str, assistant_answer: str, model_name:
     without a usable title."""
     fallback = user_message.strip().splitlines()[0][:60] if user_message.strip() else "New chat"
     try:
-        titler = ChatGoogleGenerativeAI(model=model_name, temperature=0)
+        titler = ChatGoogleGenerativeAI(model=model_name, temperature=0, google_api_key=api_key)
         title_prompt = (
             "Summarize the topic of the following chat exchange as a short "
             "title, 3 to 6 words, no punctuation at the end, no quotes "
@@ -1025,7 +1042,7 @@ if prompt:
     # place instead of adding a new title, so one session = one entry in
     # the sidebar.
     if st.session_state.active_history_idx is None:
-        title = generate_session_title(prompt, answer, model_name)
+        title = generate_session_title(prompt, answer, model_name, api_key)
         st.session_state.history.append(
             {"title": title, "messages": list(st.session_state.messages)}
         )
