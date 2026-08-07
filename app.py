@@ -363,9 +363,9 @@ st.markdown(
         max-width: 320px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        outline: 1px solid #ffffff !important;
-        border: 1px solid #ffffff !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
+        outline: 0.5px solid #ffffff !important;
+        border: 0.5px solid #ffffff !important;
+        box-shadow: 0 0 0 0.5px #ffffff inset !important;
         border-radius: 6px !important;
     }}
 
