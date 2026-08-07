@@ -221,7 +221,9 @@ def render_auth_screen() -> None:
 # ----------------------------------------------------------------------------
 # Page setup
 # ----------------------------------------------------------------------------
-st.set_page_config(page_title="AI Stock Market Assistant", page_icon="📈", layout="centered")
+st.set_page_config(
+    page_title="AI Stock Market Assistant", page_icon="📈", layout="centered"
+)
 
 APP_BG = "rgb(26, 26, 25)"
 SIDEBAR_BG = "rgb(25, 25, 24)"
@@ -245,8 +247,7 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Sidebar background + a thin (sub-1px) black boundary line on its
-       right edge, separating it from the main content area */
+    /* Sidebar background + thin black boundary line */
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"],
     [data-testid="stSidebarUserContent"] {{
@@ -257,7 +258,7 @@ st.markdown(
         box-shadow: 0.5px 0 0 0 #000000 !important;
     }}
 
-    /* Chat input box (bottom bar + the textarea inside it) */
+    /* Chat input box */
     [data-testid="stChatInput"],
     [data-testid="stChatInput"] > div,
     [data-testid="stChatInputTextArea"],
@@ -265,9 +266,7 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Bottom bar full width strip (covers the wrapper div(s) around the
-       centered chat input, so there's no lighter/darker margin on the
-       left and right of it) */
+    /* Bottom bar full width strip */
     [data-testid="stBottom"],
     [data-testid="stBottom"] > div,
     [data-testid="stBottom"] * {{
@@ -280,13 +279,7 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Generic text/password inputs and selects (sidebar API key box, model dropdown).
-       Targets the widget's own "root" wrapper (stable Streamlit testid, holds
-       just the box - not the label) as the primary target, with the older
-       BaseWeb selectors kept as a fallback for other Streamlit versions.
-       Uses outline (not border) because Streamlit/BaseWeb sets its own border
-       on nested elements with !important in some versions - outline draws a
-       fully separate ring around the box that nothing else touches. */
+    /* Generic text/password inputs and selects base styling */
     [data-testid="stTextInputRootElement"],
     [data-testid="stSelectboxRootElement"],
     [data-testid="stTextInput"] div[data-baseweb="input"],
@@ -294,69 +287,35 @@ st.markdown(
     [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
     div[data-baseweb="input"],
     div[data-baseweb="input"] > div,
-    div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
         background-color: {APP_BG} !important;
-        outline: 2px solid #ffffff !important;
-        outline-offset: -2px;
-        border: 1px solid #ffffff !important;
-        border-radius: 6px !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
-    }}
-
-    /* Belt-and-braces: force the same ring on every descendant of the Model
-       dropdown specifically, in case a still-more-nested element paints
-       over the outer boundary above. */
-    [data-testid="stSelectbox"] div[data-baseweb="select"],
-    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-    [data-testid="stSelectbox"] div[data-baseweb="select"] div {{
-        box-shadow: 0 0 0 1px #ffffff inset !important;
-    }}
-
-    /* Last resort for the Model dropdown: whatever markup Streamlit renders
-       internally, the widget box is always the direct child of
-       [data-testid="stSelectbox"] that comes right after its label - so
-       target that positionally instead of relying on a specific internal
-       class/testid/attribute name. Covers a plain native <select> too. */
-    [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]),
-    [data-testid="stSelectbox"] select {{
-        background-color: {APP_BG} !important;
-        outline: 2px solid #ffffff !important;
-        outline-offset: -2px;
-        border: 1px solid #ffffff !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
         border-radius: 6px !important;
     }}
-    [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]) * {{
-        background-color: {APP_BG} !important;
-    }}
+
     [data-testid="stTextInput"] input {{
         background-color: {APP_BG} !important;
     }}
 
-    /* Force the exact fill color on every element inside these two boxes
-       (input wrapper, icon buttons, dropdown arrow, etc.) so nothing shows
-       through a lighter/different shade */
     [data-testid="stTextInput"] *,
     [data-testid="stSelectbox"] * {{
         background-color: {APP_BG} !important;
     }}
 
-    /* Buttons (e.g. New chat) */
+    /* Buttons */
     .stButton > button {{
         background-color: {APP_BG} !important;
         border: 1px solid #ffffff !important;
         color: #ffffff !important;
     }}
 
-    /* Chat input outer box gets its own white boundary */
+    /* Chat input outer box */
     [data-testid="stChatInput"] {{
         border: 1px solid #ffffff !important;
         border-radius: 8px !important;
     }}
 
-    /* Expanders (the "What I looked up" box) */
+    /* Expanders */
     [data-testid="stExpander"],
     [data-testid="stExpander"] details,
     [data-testid="stExpander"] summary,
@@ -364,8 +323,7 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* History list: title buttons get no boundary/border at all - just
-       plain text that highlights on hover */
+    /* History list */
     .st-key-history_list button {{
         border: none !important;
         box-shadow: none !important;
@@ -380,63 +338,46 @@ st.markdown(
         text-decoration: underline !important;
     }}
 
-    /* Radio button groups (period / chart type controls) */
+    /* Radio button groups */
     div[data-testid="stRadio"],
     div[data-testid="stRadio"] > div,
     div[data-testid="stRadio"] label {{
         background-color: {APP_BG} !important;
     }}
 
-    /* --------------------------------------------------------------
-       Input boxes: shorter, fixed, consistent width, centered, with a
-       red boundary (overrides the white boundary above since these
-       rules come later in the stylesheet at equal specificity).
-       -------------------------------------------------------------- */
+    /* Input box width and alignment */
     [data-testid="stTextInput"],
     [data-testid="stSelectbox"] {{
         max-width: 320px !important;
         margin-left: auto !important;
         margin-right: auto !important;
     }}
-    [data-testid="stTextInputRootElement"],
-    [data-testid="stSelectboxRootElement"],
+
+    /* Default red border for inputs/selects */
     div[data-baseweb="input"],
-    div[data-baseweb="select"],
-    div[data-baseweb="base-input"] {{
+    div[data-baseweb="base-input"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {{
         width: 100% !important;
         max-width: 320px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        outline: 2px solid #ff0000 !important;
+        outline: 1px solid #ff0000 !important;
         border: 1px solid #ff0000 !important;
         box-shadow: 0 0 0 1px #ff0000 inset !important;
-    }}
-    [data-testid="stSelectbox"] div[data-baseweb="select"],
-    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-    [data-testid="stSelectbox"] div[data-baseweb="select"] div,
-    [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]),
-    [data-testid="stSelectbox"] select {{
-        box-shadow: 0 0 0 1px #ff0000 inset !important;
-        outline: 2px solid #ff0000 !important;
-        border: 1px solid #ff0000 !important;
+        border-radius: 6px !important;
     }}
 
-    /* Google API Key box and Model dropdown: white boundary (override of
-       the red boundary above, since these come later at equal specificity). */
-    .st-key-api_key_input [data-testid="stTextInputRootElement"],
+    /* Google API Key Box & Model Select Dropdown: White Outline Fix */
     .st-key-api_key_input div[data-baseweb="input"],
     .st-key-api_key_input div[data-baseweb="base-input"],
-    .st-key-model_select [data-testid="stSelectboxRootElement"],
-    .st-key-model_select div[data-baseweb="select"],
-    .st-key-model_select div[data-baseweb="select"] > div,
-    .st-key-model_select div[data-baseweb="select"] div,
-    .st-key-model_select > div:not([data-testid="stWidgetLabel"]) {{
+    .st-key-model_select div[data-baseweb="select"] > div {{
         outline: 1px solid #ffffff !important;
         border: 1px solid #ffffff !important;
         box-shadow: 0 0 0 1px #ffffff inset !important;
+        border-radius: 6px !important;
     }}
 
-    /* Submit / action buttons: same fixed width, centered, red boundary */
+    /* Submit / action buttons */
     [data-testid="stFormSubmitButton"] {{
         max-width: 320px !important;
         margin-left: auto !important;
@@ -460,9 +401,6 @@ st.markdown(
         border: 1px solid #ff0000 !important;
     }}
 
-    /* "New chat" and "Login / Sign up" - exact same look as the Log in /
-       Create account / Continue as guest submit buttons: filled red,
-       white text, same fixed centered width, same hover darken. */
     .st-key-new_chat_btn,
     .st-key-guest_upgrade_btn {{
         max-width: 320px !important;
@@ -487,35 +425,12 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    /* Hide Streamlit's built-in hamburger menu entirely - that menu is the
-       only place a light/dark theme switcher (Settings -> "Choose app
-       theme, colors and fonts") is exposed, so removing the menu removes
-       the light-theme option with no separate config file needed. Covers
-       both the current data-testid and the legacy #MainMenu id, in case
-       of Streamlit version differences. */
+    /* Hide Streamlit menu */
     [data-testid="stMainMenu"],
     #MainMenu {{
         visibility: hidden !important;
         display: none !important;
     }}
-
-    /* API Key and Model boxes: boundary back to white (overrides the red
-       boundary applied to input boxes generally, since these rules come
-       later in the stylesheet at equal/higher specificity). */
-    .st-key-api_key_input [data-testid="stTextInputRootElement"],
-    .st-key-api_key_input div[data-baseweb="input"],
-    .st-key-api_key_input div[data-baseweb="base-input"],
-    .st-key-model_select [data-testid="stSelectboxRootElement"],
-    .st-key-model_select div[data-baseweb="select"],
-    .st-key-model_select div[data-baseweb="select"] > div,
-    .st-key-model_select div[data-baseweb="select"] div,
-    .st-key-model_select > div:not([data-testid="stWidgetLabel"]),
-    .st-key-model_select select {{
-        outline: 2px solid #ffffff !important;
-        border: 1px solid #ffffff !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
-    }}
-
     </style>
     """,
     unsafe_allow_html=True,
