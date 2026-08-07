@@ -371,21 +371,21 @@ st.markdown(
 
     /* Google API Key Box: White Boundary */
     .st-key-api_key_input div[data-baseweb="input"],
-    .st-key-api_key_input div[data-baseweb="base-input"] {
+    .st-key-api_key_input div[data-baseweb="base-input"] {{
         outline: 1px solid #ffffff !important;
         border: 1px solid #ffffff !important;
         box-shadow: 0 0 0 1px #ffffff inset !important;
         border-radius: 6px !important;
-    }
+    }}
 
     /* Model Select Dropdown: Red Boundary Highlight */
     .st-key-model_select div[data-baseweb="select"],
-    .st-key-model_select div[data-baseweb="select"] > div {
+    .st-key-model_select div[data-baseweb="select"] > div {{
         outline: 1px solid #ff0000 !important;
         border: 1px solid #ff0000 !important;
         box-shadow: 0 0 0 1px #ff0000 inset !important;
         border-radius: 6px !important;
-    }
+    }}
 
     /* Submit / action buttons */
     [data-testid="stFormSubmitButton"] {{
