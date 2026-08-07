@@ -385,7 +385,7 @@ st.markdown(
         border: 1px solid #ffffff !important;
         box-shadow: 0 0 0 1px #ffffff inset !important;
         border-radius: 6px !important;
-    }}
+    }
 
     /* Submit / action buttons */
     [data-testid="stFormSubmitButton"] {{
