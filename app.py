@@ -279,7 +279,24 @@ st.markdown(
         background-color: {APP_BG} !important;
     }}
 
-    /* Base background colors for inputs and dropdowns */
+    /* Base styling for generic text inputs and selects */
+    [data-testid="stTextInputRootElement"],
+    [data-testid="stSelectboxRootElement"],
+    [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stTextInput"] div[data-baseweb="base-input"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="base-input"] {{
+        background-color: {APP_BG} !important;
+        border-radius: 6px !important;
+    }}
+
+    [data-testid="stTextInput"] input {{
+        background-color: {APP_BG} !important;
+    }}
+
     [data-testid="stTextInput"] *,
     [data-testid="stSelectbox"] * {{
         background-color: {APP_BG} !important;
@@ -336,13 +353,12 @@ st.markdown(
         margin-right: auto !important;
     }}
 
-    /* Unified White Boundary for Text Inputs & Selectboxes */
-    [data-testid="stTextInput"] div[data-baseweb="input"],
-    [data-testid="stTextInput"] div[data-baseweb="base-input"],
+    /* Default boundary for all inputs/selects (solid 1px white) */
+    div[data-baseweb="input"],
+    div[data-baseweb="base-input"],
     [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-    .st-key-api_key_input div[data-baseweb="input"],
-    .st-key-api_key_input div[data-baseweb="base-input"],
-    .st-key-model_select div[data-baseweb="select"] > div {{
+    [data-testid="stTextInputRootElement"],
+    [data-testid="stSelectboxRootElement"] {{
         width: 100% !important;
         max-width: 320px !important;
         margin-left: auto !important;
@@ -351,7 +367,16 @@ st.markdown(
         border: 1px solid #ffffff !important;
         box-shadow: 0 0 0 1px #ffffff inset !important;
         border-radius: 6px !important;
-        background-color: {APP_BG} !important;
+    }}
+
+    /* Google API Key Box & Model Select Dropdown: Explicit White Boundary */
+    .st-key-api_key_input div[data-baseweb="input"],
+    .st-key-api_key_input div[data-baseweb="base-input"],
+    .st-key-model_select div[data-baseweb="select"] > div {{
+        outline: 1px solid #ffffff !important;
+        border: 1px solid #ffffff !important;
+        box-shadow: 0 0 0 1px #ffffff inset !important;
+        border-radius: 6px !important;
     }}
 
     /* Submit / action buttons */
