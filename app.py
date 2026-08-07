@@ -270,7 +270,10 @@ st.markdown(
        BaseWeb selectors kept as a fallback for other Streamlit versions.
        Uses outline (not border) because Streamlit/BaseWeb sets its own border
        on nested elements with !important in some versions - outline draws a
-       fully separate ring around the box that nothing else touches. */
+       fully separate ring around the box that nothing else touches.
+
+       Boundary color is RED, box is narrowed (not full width) and re-centered
+       with margin: 0 auto so it stays in the middle of its column. */
     [data-testid="stTextInputRootElement"],
     [data-testid="stSelectboxRootElement"],
     [data-testid="stTextInput"] div[data-baseweb="input"],
@@ -281,21 +284,25 @@ st.markdown(
     div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="base-input"] {{
-        background-color: {APP_BG} !important;
-        outline: 2px solid #ffffff !important;
+        background-color: #B23A48 !important;
+        outline: 2px solid #FF0000 !important;
         outline-offset: -2px;
-        border: 1px solid #ffffff !important;
+        border: 1px solid #FF0000 !important;
         border-radius: 6px !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
+        box-shadow: 0 0 0 1px #FF0000 inset !important;
+        max-width: 70% !important;
+        width: 70% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }}
 
-    /* Belt-and-braces: force the same ring on every descendant of the Model
-       dropdown specifically, in case a still-more-nested element paints
-       over the outer boundary above. */
+    /* Belt-and-braces: force the same red ring on every descendant of the
+       Model dropdown specifically, in case a still-more-nested element
+       paints over the outer boundary above. */
     [data-testid="stSelectbox"] div[data-baseweb="select"],
     [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
     [data-testid="stSelectbox"] div[data-baseweb="select"] div {{
-        box-shadow: 0 0 0 1px #ffffff inset !important;
+        box-shadow: 0 0 0 1px #FF0000 inset !important;
     }}
 
     /* Last resort for the Model dropdown: whatever markup Streamlit renders
@@ -305,18 +312,36 @@ st.markdown(
        class/testid/attribute name. Covers a plain native <select> too. */
     [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]),
     [data-testid="stSelectbox"] select {{
-        background-color: {APP_BG} !important;
-        outline: 2px solid #ffffff !important;
+        background-color: #B23A48 !important;
+        outline: 2px solid #FF0000 !important;
         outline-offset: -2px;
-        border: 1px solid #ffffff !important;
-        box-shadow: 0 0 0 1px #ffffff inset !important;
+        border: 1px solid #FF0000 !important;
+        box-shadow: 0 0 0 1px #FF0000 inset !important;
         border-radius: 6px !important;
+        max-width: 70% !important;
+        width: 70% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }}
     [data-testid="stSelectbox"] > div:not([data-testid="stWidgetLabel"]) * {{
-        background-color: {APP_BG} !important;
+        background-color: #B23A48 !important;
     }}
     [data-testid="stTextInput"] input {{
-        background-color: {APP_BG} !important;
+        background-color: #B23A48 !important;
+    }}
+
+    /* Center the text-input and selectbox widgets themselves within their
+       parent column, since their inner box above is now narrower than
+       100% width. */
+    [data-testid="stTextInput"],
+    [data-testid="stSelectbox"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }}
+    [data-testid="stTextInput"] > label,
+    [data-testid="stSelectbox"] > label {{
+        align-self: center !important;
     }}
 
     /* Force the exact fill color on every element inside these two boxes
@@ -324,20 +349,25 @@ st.markdown(
        through a lighter/different shade */
     [data-testid="stTextInput"] *,
     [data-testid="stSelectbox"] * {{
-        background-color: {APP_BG} !important;
+        background-color: #B23A48 !important;
     }}
 
-    /* Buttons (e.g. New chat) */
-    .stButton > button {{
+    /* Buttons (e.g. New chat, form submit buttons) - red boundary */
+    .stButton > button,
+    [data-testid="stFormSubmitButton"] > button {{
         background-color: {APP_BG} !important;
-        border: 1px solid #ffffff !important;
+        border: 1px solid #FF0000 !important;
         color: #ffffff !important;
     }}
 
-    /* Chat input outer box gets its own white boundary */
+    /* Chat input outer box gets its own red boundary and is narrowed +
+       re-centered like the other input boxes above. */
     [data-testid="stChatInput"] {{
-        border: 1px solid #ffffff !important;
+        border: 1px solid #FF0000 !important;
         border-radius: 8px !important;
+        max-width: 70% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }}
 
     /* Expanders (the "What I looked up" box) */
