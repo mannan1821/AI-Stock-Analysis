@@ -235,6 +235,18 @@ st.markdown(
         --secondary-background-color: {APP_BG};
     }}
 
+
+    /* Hide the top-right toolbar entirely - this includes the "View app
+    source" GitHub badge that Streamlit Community Cloud injects, plus the
+    Deploy button and menu cluster next to it. */
+    [data-testid="stToolbar"],
+    [data-testid="stToolbarActions"],
+    .viewerBadge_container__1QSob,
+    .viewerBadge_link__1S137 {{
+        display: none !important;
+        visibility: hidden !important;
+    }}
+
     /* Outer page + main app view + header/toolbar strip + bottom bar wrapper */
     html, body,
     .stApp,
